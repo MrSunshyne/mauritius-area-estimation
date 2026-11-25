@@ -1,0 +1,31 @@
+{
+  "name": "mauritius-area-estimation",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MrSunshyne/mauritius-area-estimation.git"
+  },
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview --host",
+    "check": "vue-tsc --noEmit",
+    "test": "vitest run",
+    "icons": "node scripts/icons.mjs"
+  },
+  "dependencies": {
+    "geographiclib-geodesic": "^2.2.0",
+    "maplibre-gl": "^6.19.0",
+    "vue": "^3.5.46"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.11",
+    "typescript": "^6.0.3",
+    "vite": "^8.3.8",
+    "vite-plugin-pwa": "^2.0.0",
+    "vitest": "^5.1.2",
+    "vue-tsc": "^3.3.14"
+  }
+}
