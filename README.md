@@ -52,6 +52,12 @@ For the deployed site, add the same key as the repository secret `VITE_ARCGIS_AP
 
 Esri's terms allow tracing features from World Imagery. Google's satellite imagery is not used: its terms forbid tracing from it and showing it with other maps.
 
+### Visit counts and link previews
+
+Visits are counted with [GoatCounter](https://www.goatcounter.com), site `area-mauritius` (https://area-mauritius.goatcounter.com), from the script in `index.html`, and shown on https://stats.ramgolam.com. GoatCounter doesn't see the `#p=…` part of a shared link, so every visit counts as `/`.
+
+`public/og-image.jpg` (1200 × 630) is the link preview: a screenshot of the live app with a plot drawn.
+
 ## Stack
 
 Vue 3, Vite, [MapLibre GL JS](https://maplibre.org/) v6 for the map, `geographiclib-geodesic` for areas and lengths, `vite-plugin-pwa` for installing it on the home screen. Drawing is our own code (`src/map/map.ts`): one outline, crosshair placement, tap to select a corner.
