@@ -1,0 +1,63 @@
+# Pushing to main deploys the app to Cloudflare Pages (project mauritius-area-estimation),
+# at https://area.ramgolam.com.
+#
+# Needs the repository secret CLOUDFLARE_API_TOKEN: a Cloudflare API token with the
+# permission Account > Cloudflare Pages > Edit. VITE_ARCGIS_API_KEY is optional; without it
+# the app uses Esri's public imagery tiles.
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# One deploy at a time, the latest push last.
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_ACCOUNT_ID: fb66afc37aeaf7f732b01ea9efb61ab2
+    steps:
+      - name: Check for the Cloudflare token
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "::error::Add the repository secret CLOUDFLARE_API_TOKEN (see Deploying in the README)."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        env:
+          VITE_ARCGIS_API_KEY: ${{ secrets.VITE_ARCGIS_API_KEY }}
+        run: npm run build
+
+      - name: Deploy to Cloudflare Pages
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: >-
+          npx wrangler pages deploy dist
+          --project-name mauritius-area-estimation
+          --branch main
+          --commit-hash "${{ github.sha }}"
+          --commit-message "$(git log -1 --format=%s)"

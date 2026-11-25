@@ -21,10 +21,6 @@ export function fmtLength(m: number): string {
   return m < 100 ? `${fmt(m, 1)} m` : `${fmt(m, 0)} m`;
 }
 
-export function fmtRs(rs: number): string {
-  return `Rs ${fmt(rs, 0)}`;
-}
-
 export function toUnits(m2: number) {
   return {
     m2,

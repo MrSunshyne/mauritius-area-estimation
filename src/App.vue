@@ -4,10 +4,8 @@ import { LngLatBounds, type Map } from 'maplibre-gl';
 import { createMap, PlotView, PositionView } from './map/map';
 import { crosshairSigma, measure, type Corner } from './lib/area';
 import { averagePosition, gps, startGps } from './lib/gps';
-import { quote as makeQuote } from './lib/pricing';
-import { decodeShape, encodeShape, loadDraft, loadPlots, loadSettings, saveDraft, savePlots, saveSettings, type SavedPlot } from './lib/store';
-import { fmt, fmtLength, fmtM2, fmtRs, toUnits } from './lib/units';
-import QuoteSheet from './components/QuoteSheet.vue';
+import { decodeShape, encodeShape, loadDraft, loadPlots, saveDraft, savePlots, type SavedPlot } from './lib/store';
+import { fmt, fmtLength, fmtM2, toUnits } from './lib/units';
 import PlotsSheet from './components/PlotsSheet.vue';
 
 const mapEl = ref<HTMLElement>();
@@ -15,20 +13,16 @@ const map = shallowRef<Map>();
 let plotView: PlotView;
 let positionView: PositionView;
 
-const draft = loadDraft();
-const corners = ref<Corner[]>(draft.corners);
-const job = reactive(draft.job);
-const settings = reactive(loadSettings());
+const corners = ref<Corner[]>(loadDraft());
 const plots = ref<SavedPlot[]>(loadPlots());
 const selected = ref<number | null>(null);
-const sheet = ref<null | 'quote' | 'plots'>(null);
+const sheet = ref<null | 'plots'>(null);
 const toast = ref('');
 const undoStack = shallowRef<Corner[][]>([]);
 let followNextFix = false;
 
 const m = computed(() => measure(corners.value));
 const units = computed(() => toUnits(m.value.area));
-const q = computed(() => makeQuote(m.value.area, job, settings));
 const pct = computed(() => (m.value.area > 0 ? (m.value.uncertainty / m.value.area) * 100 : 0));
 
 function say(text: string) {
@@ -131,9 +125,6 @@ function summary(): string {
     `= ${fmt(u.perches, 1)} perches = ${fmt(u.arpents, 2)} arpents`,
     `Perimeter: ${fmtLength(m.value.perimeter)}`,
   ];
-  if (m.value.area > 0) {
-    lines.push(`Estimate: ${fmtRs(q.value.mid.price)} (${fmtRs(q.value.low.price)}–${fmtRs(q.value.high.price)}), about ${fmt(q.value.mid.days, 1)} day(s)`);
-  }
   return lines.join('\n');
 }
 
@@ -164,7 +155,6 @@ function savePlot() {
     name: name.trim() || 'Plot',
     savedAt: new Date().toISOString(),
     corners: corners.value.map((c) => ({ ...c })),
-    job: JSON.parse(JSON.stringify(job)),
     area: m.value.area,
   });
   savePlots(plots.value);
@@ -174,7 +164,6 @@ function savePlot() {
 function openPlot(p: SavedPlot) {
   remember();
   corners.value = p.corners.map((c) => ({ ...c }));
-  Object.assign(job, JSON.parse(JSON.stringify(p.job)));
   selected.value = null;
   sheet.value = null;
   fitPlot(p.corners);
@@ -185,8 +174,7 @@ function deletePlot(id: string) {
   savePlots(plots.value);
 }
 
-watch([corners, job], () => saveDraft(corners.value, job), { deep: true });
-watch(settings, () => saveSettings(settings), { deep: true });
+watch(corners, () => saveDraft(corners.value), { deep: true });
 watch(
   () => gps.fix,
   (fix) => {
@@ -250,7 +238,7 @@ onMounted(() => {
   <div ref="mapEl" class="map"></div>
   <div class="reticle" :class="{ moving: selected !== null }" aria-hidden="true"></div>
 
-  <header v-if="m.area > 0 || selected === null" class="readout" @click="m.area > 0 && (sheet = 'quote')">
+  <header v-if="m.area > 0 || selected === null" class="readout">
     <template v-if="m.area > 0">
       <div class="big">{{ fmtM2(units.m2) }} <small>±{{ fmt(pct, pct < 10 ? 1 : 0) }}%</small></div>
       <div class="sub">
@@ -304,9 +292,6 @@ onMounted(() => {
           <button @click="selected = null">Done</button>
         </template>
         <template v-else>
-          <button class="quote" :disabled="m.area === 0" @click="sheet = 'quote'">
-            {{ m.area > 0 ? `${fmtRs(q.mid.price)} · ${fmt(q.mid.days, 1)} d` : 'Quote' }}
-          </button>
           <button :disabled="m.area === 0" @click="savePlot">Save</button>
           <button :disabled="m.area === 0" @click="share">Share</button>
           <button :disabled="!corners.length" @click="clearAll">Clear</button>
@@ -315,6 +300,5 @@ onMounted(() => {
     </template>
   </footer>
 
-  <QuoteSheet v-if="sheet === 'quote'" :area="m.area" :job="job" :settings="settings" :quote="q" @close="sheet = null" />
   <PlotsSheet v-if="sheet === 'plots'" :plots="plots" @open="openPlot" @delete="deletePlot" @close="sheet = null" />
 </template>
