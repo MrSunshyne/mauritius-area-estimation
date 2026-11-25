@@ -2,6 +2,8 @@
 
 Estimate the area of a plot in Mauritius from your phone, on site: the map finds you, you outline the plot on satellite imagery, and it gives the area (m², perches, arpents, hectares) with an error range, plus a clearing quote in hours, days and rupees. Built first for Pentaforce Movers (backhoe loader) to price land clearing on the spot.
 
+Live: https://mauritius-area-estimation.pages.dev (open it on the phone and add it to the home screen).
+
 ## Using it
 
 1. Open the app and allow location. The map flies to where you are.
@@ -36,9 +38,10 @@ npm install
 npm run dev      # http://localhost:5173 (and on the LAN with --host)
 npm test         # area, units and pricing
 npm run build    # typecheck + production build in dist/
+npm run deploy   # build, then upload dist/ to Cloudflare Pages (project mauritius-area-estimation)
 ```
 
-Location only works over HTTPS (or on localhost), so to try it on a phone, serve `dist/` through an HTTPS tunnel (`ngrok http …`, `tailscale serve …`) or deploy it.
+Location only works over HTTPS (or on localhost), so try it on a phone through the deployed site. `npm run deploy` needs `npx wrangler login` first; there is no automatic deploy on push.
 
 ### Imagery key
 

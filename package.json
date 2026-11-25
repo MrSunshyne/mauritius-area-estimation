@@ -13,7 +13,8 @@
     "preview": "vite preview --host",
     "check": "vue-tsc --noEmit",
     "test": "vitest run",
-    "icons": "node scripts/icons.mjs"
+    "icons": "node scripts/icons.mjs",
+    "deploy": "npm run build && npx wrangler pages deploy dist --project-name mauritius-area-estimation --branch main"
   },
   "dependencies": {
     "geographiclib-geodesic": "^2.2.0",
